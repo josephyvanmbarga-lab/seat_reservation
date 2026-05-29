@@ -21,12 +21,6 @@ public class VehiculeServiceImpl implements VehiculeService {
 
     @Override
     public VehiculeResponse create(VehiculeRequest request) {
-        if (request.getImmatriculation() == null || request.getImmatriculation().isBlank()) {
-            throw new IllegalArgumentException("L'immatriculation est obligatoire");
-        }
-        if (request.getCapacite() <= 0) {
-            throw new IllegalArgumentException("La capacité doit être supérieure à 0");
-        }
         if (repository.existsByImmatriculation(request.getImmatriculation())) {
             throw new IllegalStateException("Un véhicule avec cette immatriculation existe déjà");
         }
@@ -52,9 +46,6 @@ public class VehiculeServiceImpl implements VehiculeService {
     public VehiculeResponse update(Long id, VehiculeRequest request) {
         Vehicule vehicule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable : id=" + id));
-        if (request.getCapacite() <= 0) {
-            throw new IllegalArgumentException("La capacité doit être supérieure à 0");
-        }
         if (!vehicule.getImmatriculation().equals(request.getImmatriculation())
                 && repository.existsByImmatriculation(request.getImmatriculation())) {
             throw new IllegalStateException("Un véhicule avec cette immatriculation existe déjà");

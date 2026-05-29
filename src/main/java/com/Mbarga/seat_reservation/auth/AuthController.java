@@ -1,5 +1,6 @@
 package com.mbarga.seat_reservation.auth;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,13 +28,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        if (request.getUsername() == null || request.getUsername().isBlank()) {
-            throw new IllegalArgumentException("Le nom d'utilisateur est obligatoire");
-        }
-        if (request.getPassword() == null || request.getPassword().length() < 6) {
-            throw new IllegalArgumentException("Le mot de passe doit contenir au moins 6 caractères");
-        }
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalStateException("Ce nom d'utilisateur est déjà pris");
         }

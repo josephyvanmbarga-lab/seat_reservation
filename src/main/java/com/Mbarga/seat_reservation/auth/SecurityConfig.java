@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         // seul ADMIN peut créer, modifier ou supprimer un véhicule
                         .requestMatchers(HttpMethod.POST,   "/api/vehicules").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/vehicules/**").hasRole("ADMIN")

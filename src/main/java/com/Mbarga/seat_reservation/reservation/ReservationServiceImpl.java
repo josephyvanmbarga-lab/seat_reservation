@@ -23,13 +23,6 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ReservationResponse create(ReservationRequest request) {
-        if (request.getNomPassager() == null || request.getNomPassager().isBlank()) {
-            throw new IllegalArgumentException("Le nom du passager est obligatoire");
-        }
-        if (request.getDateVoyage() == null) {
-            throw new IllegalArgumentException("La date de voyage est obligatoire");
-        }
-
         Vehicule vehicule = vehiculeRepository.findById(request.getVehiculeId())
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable : id=" + request.getVehiculeId()));
 

@@ -1,5 +1,6 @@
 package com.mbarga.seat_reservation.vehicule;
 
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class VehiculeController {
     }
 
     @PostMapping
-    public ResponseEntity<VehiculeResponse> create(@RequestBody VehiculeRequest request) {
+    public ResponseEntity<VehiculeResponse> create(@Valid @RequestBody VehiculeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
@@ -34,7 +35,7 @@ public class VehiculeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VehiculeResponse> update(@PathVariable Long id, @RequestBody VehiculeRequest request) {
+    public ResponseEntity<VehiculeResponse> update(@PathVariable Long id, @Valid @RequestBody VehiculeRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

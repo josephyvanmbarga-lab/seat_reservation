@@ -1,5 +1,6 @@
 package com.mbarga.seat_reservation.reservation;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponse> create(@RequestBody ReservationRequest request) {
+    public ResponseEntity<ReservationResponse> create(@Valid @RequestBody ReservationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
