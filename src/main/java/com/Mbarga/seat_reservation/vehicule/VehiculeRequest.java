@@ -2,7 +2,10 @@ package com.mbarga.seat_reservation.vehicule;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
+@Data
 public class VehiculeRequest {
 
     @NotBlank(message = "L'immatriculation est obligatoire")
@@ -10,15 +13,9 @@ public class VehiculeRequest {
 
     private String modele;
 
-    @Min(value = 1, message = "La capacité doit être supérieure à 0")
+    @Min(value = 1, message = "La capacité doit être d'au moins 1 siège")
     private int capacite;
 
-    public VehiculeRequest() {}
-
-    public String getImmatriculation() { return immatriculation; }
-    public void setImmatriculation(String immatriculation) { this.immatriculation = immatriculation; }
-    public String getModele() { return modele; }
-    public void setModele(String modele) { this.modele = modele; }
-    public int getCapacite() { return capacite; }
-    public void setCapacite(int capacite) { this.capacite = capacite; }
+    @NotNull(message = "Le type de disposition est obligatoire")
+    private TypeDisposition typeDisposition;
 }

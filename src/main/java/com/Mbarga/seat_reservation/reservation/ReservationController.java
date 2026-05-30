@@ -1,8 +1,10 @@
 package com.mbarga.seat_reservation.reservation;
 
+import com.mbarga.seat_reservation.auth.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,13 +20,15 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponse> create(@Valid @RequestBody ReservationRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
+    public ResponseEntity<ReservationResponse> create(@Valid @RequestBody ReservationRequest request,
+                                                       @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request, currentUser));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReservationResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(service.getById(id));
+    public ResponseEntity<ReservationResponse> getById(@PathVariable Long id,
+                                                        @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.getById(id, currentUser));
     }
 
     @GetMapping
@@ -32,14 +36,33 @@ public class ReservationController {
         return ResponseEntity.ok(service.getAll());
     }
 
-    @GetMapping("/vehicule/{vehiculeId}")
-    public ResponseEntity<List<ReservationResponse>> getByVehicule(@PathVariable Long vehiculeId) {
-        return ResponseEntity.ok(service.getByVehicule(vehiculeId));
+    @GetMapping("/mes-reservations")
+    public ResponseEntity<List<ReservationResponse>> getMesReservations(
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.getMesReservations(currentUser));
+    }
+
+    @GetMapping("/trajet/{trajetId}")
+    public ResponseEntity<List<ReservationResponse>> getByTrajet(@PathVariable Long trajetId) {
+        return ResponseEntity.ok(service.getByTrajet(trajetId));
+    }
+
+    @GetMapping("/mes-trajets")
+    public ResponseEntity<List<ReservationResponse>> getMesTrajetsReservations(
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.getMesTrajetsReservations(currentUser));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancel(@PathVariable Long id) {
-        service.cancel(id);
+    public ResponseEntity<Void> cancel(@PathVariable Long id,
+                                        @AuthenticationPrincipal User currentUser) {
+        service.cancel(id, currentUser);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/statut")
+    public ResponseEntity<ReservationResponse> updateStatut(@PathVariable Long id,
+                                                             @RequestParam StatutReservation statut) {
+        return ResponseEntity.ok(service.updateStatut(id, statut));
     }
 }

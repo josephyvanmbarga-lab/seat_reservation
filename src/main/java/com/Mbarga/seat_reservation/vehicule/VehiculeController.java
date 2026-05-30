@@ -1,12 +1,12 @@
 package com.mbarga.seat_reservation.vehicule;
 
+import com.mbarga.seat_reservation.auth.User;
 import jakarta.validation.Valid;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController
@@ -20,8 +20,9 @@ public class VehiculeController {
     }
 
     @PostMapping
-    public ResponseEntity<VehiculeResponse> create(@Valid @RequestBody VehiculeRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
+    public ResponseEntity<VehiculeResponse> create(@Valid @RequestBody VehiculeRequest request,
+                                                    @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request, currentUser));
     }
 
     @GetMapping("/{id}")
@@ -34,21 +35,23 @@ public class VehiculeController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    @GetMapping("/mes-vehicules")
+    public ResponseEntity<List<VehiculeResponse>> getMesVehicules(
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.getMesVehicules(currentUser));
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<VehiculeResponse> update(@PathVariable Long id, @Valid @RequestBody VehiculeRequest request) {
-        return ResponseEntity.ok(service.update(id, request));
+    public ResponseEntity<VehiculeResponse> update(@PathVariable Long id,
+                                                    @Valid @RequestBody VehiculeRequest request,
+                                                    @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.update(id, request, currentUser));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id,
+                                        @AuthenticationPrincipal User currentUser) {
+        service.delete(id, currentUser);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{id}/sieges-disponibles")
-    public ResponseEntity<List<Integer>> getSiegesDisponibles(
-            @PathVariable Long id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime date) {
-        return ResponseEntity.ok(service.getSiegesDisponibles(id, date));
     }
 }

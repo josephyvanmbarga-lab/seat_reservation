@@ -1,9 +1,14 @@
 package com.mbarga.seat_reservation.vehicule;
 
+import com.mbarga.seat_reservation.auth.User;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "vehicule")
+@Getter @Setter @NoArgsConstructor
 public class Vehicule {
 
     @Id
@@ -19,19 +24,20 @@ public class Vehicule {
     @Column(nullable = false)
     private int capacite;
 
-    public Vehicule() {}
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type_disposition", nullable = false, length = 30)
+    private TypeDisposition typeDisposition;
 
-    public Vehicule(String immatriculation, String modele, int capacite) {
-        this.immatriculation = immatriculation;
-        this.modele = modele;
-        this.capacite = capacite;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chauffeur_id", nullable = false)
+    private User chauffeur;
+
+    public Vehicule(String immatriculation, String modele, int capacite,
+                    TypeDisposition typeDisposition, User chauffeur) {
+        this.immatriculation  = immatriculation;
+        this.modele           = modele;
+        this.capacite         = capacite;
+        this.typeDisposition  = typeDisposition;
+        this.chauffeur        = chauffeur;
     }
-
-    public Long getId() { return id; }
-    public String getImmatriculation() { return immatriculation; }
-    public void setImmatriculation(String immatriculation) { this.immatriculation = immatriculation; }
-    public String getModele() { return modele; }
-    public void setModele(String modele) { this.modele = modele; }
-    public int getCapacite() { return capacite; }
-    public void setCapacite(int capacite) { this.capacite = capacite; }
 }

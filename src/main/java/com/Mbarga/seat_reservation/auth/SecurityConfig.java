@@ -37,6 +37,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // WebSocket STOMP — auth gérée par le ChannelInterceptor JWT
+                        .requestMatchers("/ws/**").permitAll()
+                        // accès public aux positions via lien partagé
+                        .requestMatchers(HttpMethod.GET, "/api/suivi/*/positions").permitAll()
                         // seul ADMIN peut créer, modifier ou supprimer un véhicule
                         .requestMatchers(HttpMethod.POST,   "/api/vehicules").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/vehicules/**").hasRole("ADMIN")

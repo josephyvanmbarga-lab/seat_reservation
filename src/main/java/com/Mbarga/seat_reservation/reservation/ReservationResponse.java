@@ -1,48 +1,44 @@
 package com.mbarga.seat_reservation.reservation;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+@Data
+@AllArgsConstructor
 public class ReservationResponse {
 
-    private Long id;
-    private String nomPassager;
-    private int siegeNumero;
-    private OffsetDateTime dateReservation;
-    private OffsetDateTime dateVoyage;
-    private Long vehiculeId;
-    private String vehiculeImmatriculation;
-
-    public ReservationResponse() {}
-
-    public ReservationResponse(Long id, String nomPassager, int siegeNumero,
-                               OffsetDateTime dateReservation, OffsetDateTime dateVoyage,
-                               Long vehiculeId, String vehiculeImmatriculation) {
-        this.id = id;
-        this.nomPassager = nomPassager;
-        this.siegeNumero = siegeNumero;
-        this.dateReservation = dateReservation;
-        this.dateVoyage = dateVoyage;
-        this.vehiculeId = vehiculeId;
-        this.vehiculeImmatriculation = vehiculeImmatriculation;
-    }
+    private Long                 id;
+    private Long                 passagerId;
+    private String               passagerUsername;
+    private Long                 trajetId;
+    private String               pointDepart;
+    private String               pointArrivee;
+    private OffsetDateTime       dateHeureDepart;
+    private int                  siegeNumero;
+    private StatutReservation    statut;
+    private ModePaiement         modePaiement;
+    private OperateurMobileMoney operateurMobileMoney;
+    private BigDecimal           prixPaye;
+    private OffsetDateTime       dateReservation;
 
     public static ReservationResponse from(Reservation r) {
         return new ReservationResponse(
                 r.getId(),
-                r.getNomPassager(),
+                r.getPassager().getId(),
+                r.getPassager().getUsername(),
+                r.getTrajet().getId(),
+                r.getTrajet().getPointDepart(),
+                r.getTrajet().getPointArrivee(),
+                r.getTrajet().getDateHeureDepart(),
                 r.getSiegeNumero(),
-                r.getDateReservation(),
-                r.getDateVoyage(),
-                r.getVehicule().getId(),
-                r.getVehicule().getImmatriculation()
+                r.getStatut(),
+                r.getModePaiement(),
+                r.getOperateurMobileMoney(),
+                r.getPrixPaye(),
+                r.getDateReservation()
         );
     }
-
-    public Long getId() { return id; }
-    public String getNomPassager() { return nomPassager; }
-    public int getSiegeNumero() { return siegeNumero; }
-    public OffsetDateTime getDateReservation() { return dateReservation; }
-    public OffsetDateTime getDateVoyage() { return dateVoyage; }
-    public Long getVehiculeId() { return vehiculeId; }
-    public String getVehiculeImmatriculation() { return vehiculeImmatriculation; }
 }

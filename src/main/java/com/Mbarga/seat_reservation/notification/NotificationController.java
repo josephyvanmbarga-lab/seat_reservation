@@ -1,6 +1,8 @@
 package com.mbarga.seat_reservation.notification;
 
+import com.mbarga.seat_reservation.auth.User;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,8 +18,9 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getAll() {
-        return ResponseEntity.ok(service.getAll());
+    public ResponseEntity<List<NotificationResponse>> getMesNotifications(
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.getMesNotifications(currentUser.getId()));
     }
 
     @GetMapping("/{id}")
@@ -25,19 +28,16 @@ public class NotificationController {
         return ResponseEntity.ok(service.getById(id));
     }
 
-    @GetMapping("/reservation/{reservationId}")
-    public ResponseEntity<List<NotificationResponse>> getByReservation(@PathVariable Long reservationId) {
-        return ResponseEntity.ok(service.getByReservation(reservationId));
-    }
-
     @PatchMapping("/{id}/lu")
-    public ResponseEntity<NotificationResponse> markAsRead(@PathVariable Long id) {
-        return ResponseEntity.ok(service.markAsRead(id));
+    public ResponseEntity<NotificationResponse> markAsRead(@PathVariable Long id,
+                                                            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.markAsRead(id, currentUser.getId()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id,
+                                        @AuthenticationPrincipal User currentUser) {
+        service.delete(id, currentUser.getId());
         return ResponseEntity.noContent().build();
     }
 }

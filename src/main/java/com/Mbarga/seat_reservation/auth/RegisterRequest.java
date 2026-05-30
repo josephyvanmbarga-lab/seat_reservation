@@ -1,8 +1,11 @@
 package com.mbarga.seat_reservation.auth;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 public class RegisterRequest {
 
     @NotBlank(message = "Le nom d'utilisateur est obligatoire")
@@ -12,10 +15,10 @@ public class RegisterRequest {
     @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
     private String password;
 
-    public RegisterRequest() {}
+    private String email;
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    @Pattern(regexp = "^[+]?[0-9]{8,15}$", message = "Numéro de téléphone invalide")
+    private String telephone;
+
+    private Role role = Role.USER;
 }

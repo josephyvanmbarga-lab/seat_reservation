@@ -1,78 +1,82 @@
 package com.mbarga.seat_reservation.vehicule;
 
-import com.mbarga.seat_reservation.reservation.ReservationRepository;
+import com.mbarga.seat_reservation.auth.Role;
+import com.mbarga.seat_reservation.auth.User;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Service
 public class VehiculeServiceImpl implements VehiculeService {
 
     private final VehiculeRepository repository;
-    private final ReservationRepository reservationRepository;
 
-    public VehiculeServiceImpl(VehiculeRepository repository, ReservationRepository reservationRepository) {
+    public VehiculeServiceImpl(VehiculeRepository repository) {
         this.repository = repository;
-        this.reservationRepository = reservationRepository;
     }
 
     @Override
-    public VehiculeResponse create(VehiculeRequest request) {
+    public VehiculeResponse create(VehiculeRequest request, User chauffeur) {
         if (repository.existsByImmatriculation(request.getImmatriculation())) {
             throw new IllegalStateException("Un véhicule avec cette immatriculation existe déjà");
         }
-        Vehicule vehicule = new Vehicule(request.getImmatriculation(), request.getModele(), request.getCapacite());
+        Vehicule vehicule = new Vehicule(
+                request.getImmatriculation(),
+                request.getModele(),
+                request.getCapacite(),
+                request.getTypeDisposition(),
+                chauffeur
+        );
         return VehiculeResponse.from(repository.save(vehicule));
     }
 
     @Override
     public VehiculeResponse getById(Long id) {
-        Vehicule vehicule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable : id=" + id));
-        return VehiculeResponse.from(vehicule);
+        return VehiculeResponse.from(findOrThrow(id));
     }
 
     @Override
     public List<VehiculeResponse> getAll() {
-        return repository.findAll().stream()
-                .map(VehiculeResponse::from)
-                .toList();
+        return repository.findAll().stream().map(VehiculeResponse::from).toList();
     }
 
     @Override
-    public VehiculeResponse update(Long id, VehiculeRequest request) {
-        Vehicule vehicule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable : id=" + id));
+    public List<VehiculeResponse> getMesVehicules(User chauffeur) {
+        return repository.findByChauffeurId(chauffeur.getId())
+                .stream().map(VehiculeResponse::from).toList();
+    }
+
+    @Override
+    public VehiculeResponse update(Long id, VehiculeRequest request, User currentUser) {
+        Vehicule vehicule = findOrThrow(id);
+
+        if (currentUser.getRole() != Role.ADMIN
+                && !vehicule.getChauffeur().getId().equals(currentUser.getId())) {
+            throw new IllegalStateException("Ce véhicule ne vous appartient pas");
+        }
         if (!vehicule.getImmatriculation().equals(request.getImmatriculation())
-                && repository.existsByImmatriculation(request.getImmatriculation())) {
+                && repository.existsByImmatriculationAndIdNot(request.getImmatriculation(), id)) {
             throw new IllegalStateException("Un véhicule avec cette immatriculation existe déjà");
         }
         vehicule.setImmatriculation(request.getImmatriculation());
         vehicule.setModele(request.getModele());
         vehicule.setCapacite(request.getCapacite());
+        vehicule.setTypeDisposition(request.getTypeDisposition());
         return VehiculeResponse.from(repository.save(vehicule));
     }
 
     @Override
-    public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new IllegalArgumentException("Véhicule introuvable : id=" + id);
+    public void delete(Long id, User currentUser) {
+        Vehicule vehicule = findOrThrow(id);
+        if (currentUser.getRole() != Role.ADMIN
+                && !vehicule.getChauffeur().getId().equals(currentUser.getId())) {
+            throw new IllegalStateException("Ce véhicule ne vous appartient pas");
         }
         repository.deleteById(id);
     }
 
-    @Override
-    public List<Integer> getSiegesDisponibles(Long vehiculeId, OffsetDateTime date) {
-        Vehicule vehicule = repository.findById(vehiculeId)
-                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable : id=" + vehiculeId));
-        List<Integer> reserved = reservationRepository
-                .findSiegesReservesByVehiculeIdAndDateVoyage(vehiculeId, date);
-        return IntStream.rangeClosed(1, vehicule.getCapacite())
-                .filter(s -> !reserved.contains(s))
-                .boxed()
-                .collect(Collectors.toList());
+    private Vehicule findOrThrow(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable : id=" + id));
     }
 }
