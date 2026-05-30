@@ -51,9 +51,9 @@ class VehiculeControllerTest {
                     .securityContext(ctx -> ctx
                             .securityContextRepository(new HttpSessionSecurityContextRepository()))
                     .authorizeHttpRequests(a -> a
-                            .requestMatchers(HttpMethod.POST,   "/api/vehicules").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.PUT,    "/api/vehicules/**").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/api/vehicules/**").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.POST,   "/api/vehicules").hasAnyRole("CHAUFFEUR", "ADMIN")
+                            .requestMatchers(HttpMethod.PUT,    "/api/vehicules/**").hasAnyRole("CHAUFFEUR", "ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/api/vehicules/**").hasAnyRole("CHAUFFEUR", "ADMIN")
                             .anyRequest().authenticated()
                     )
                     .exceptionHandling(e -> e

@@ -41,10 +41,12 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         // accès public aux positions via lien partagé
                         .requestMatchers(HttpMethod.GET, "/api/suivi/*/positions").permitAll()
-                        // seul ADMIN peut créer, modifier ou supprimer un véhicule
-                        .requestMatchers(HttpMethod.POST,   "/api/vehicules").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/api/vehicules/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/vehicules/**").hasRole("ADMIN")
+                        // création de trajet réservée aux chauffeurs
+                        .requestMatchers(HttpMethod.POST, "/api/trajets").hasAnyRole("CHAUFFEUR", "ADMIN")
+                        // gestion des véhicules : chauffeur pour ses propres véhicules, admin pour tous
+                        .requestMatchers(HttpMethod.POST,   "/api/vehicules").hasAnyRole("CHAUFFEUR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/vehicules/**").hasAnyRole("CHAUFFEUR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/vehicules/**").hasAnyRole("CHAUFFEUR", "ADMIN")
                         // tout utilisateur authentifié accède au reste
                         .anyRequest().authenticated()
                 )

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserRepository       userRepository;
-
     private final PasswordEncoder      passwordEncoder;
     private final JwtService           jwtService;
     private final AuthenticationManager authenticationManager;
