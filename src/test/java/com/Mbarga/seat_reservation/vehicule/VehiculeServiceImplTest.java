@@ -1,18 +1,14 @@
 package com.Mbarga.seat_reservation.vehicule;
 
-import com.mbarga.seat_reservation.reservation.ReservationRepository;
-import com.mbarga.seat_reservation.vehicule.Vehicule;
-import com.mbarga.seat_reservation.vehicule.VehiculeRepository;
-import com.mbarga.seat_reservation.vehicule.VehiculeRequest;
-import com.mbarga.seat_reservation.vehicule.VehiculeResponse;
-import com.mbarga.seat_reservation.vehicule.VehiculeServiceImpl;
+import com.mbarga.seat_reservation.auth.Role;
+import com.mbarga.seat_reservation.auth.User;
+import com.mbarga.seat_reservation.vehicule.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,58 +20,54 @@ import static org.mockito.Mockito.*;
 class VehiculeServiceImplTest {
 
     @Mock VehiculeRepository repository;
-    @Mock ReservationRepository reservationRepository;
     @InjectMocks VehiculeServiceImpl service;
+
+    private User user(Long id, Role role) {
+        User u = new User("user" + id, "pass", "user" + id + "@test.com", "+237600000000", role);
+        u.setId(id);
+        return u;
+    }
+
+    private Vehicule vehicule(Long id, User chauffeur) {
+        Vehicule v = new Vehicule("AB-" + id + "-CD", "Bus", 10, TypeDisposition.MINIBUS, chauffeur);
+        v.setId(id);
+        return v;
+    }
+
+    private VehiculeRequest request(String immat) {
+        VehiculeRequest r = new VehiculeRequest();
+        r.setImmatriculation(immat);
+        r.setModele("Bus");
+        r.setCapacite(20);
+        r.setTypeDisposition(TypeDisposition.MINIBUS);
+        return r;
+    }
+
+    // ── create ────────────────────────────────────────────────────────────────
 
     @Test
     void create_success() {
-        VehiculeRequest req = new VehiculeRequest();
-        req.setImmatriculation("AB-123-CD");
-        req.setModele("Mercedes");
-        req.setCapacite(30);
-
+        User chauffeur = user(1L, Role.CHAUFFEUR);
+        Vehicule saved  = vehicule(1L, chauffeur);
         when(repository.existsByImmatriculation("AB-123-CD")).thenReturn(false);
-        when(repository.save(any())).thenReturn(new Vehicule("AB-123-CD", "Mercedes", 30));
+        when(repository.save(any())).thenReturn(saved);
 
-        VehiculeResponse resp = service.create(req);
+        VehiculeResponse resp = service.create(request("AB-123-CD"), chauffeur);
 
-        assertThat(resp.getImmatriculation()).isEqualTo("AB-123-CD");
-        assertThat(resp.getCapacite()).isEqualTo(30);
-    }
-
-    @Test
-    void create_immatriculationVide_throws() {
-        VehiculeRequest req = new VehiculeRequest();
-        req.setImmatriculation("  ");
-        req.setCapacite(10);
-
-        assertThatThrownBy(() -> service.create(req))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("immatriculation");
-    }
-
-    @Test
-    void create_capaciteZero_throws() {
-        VehiculeRequest req = new VehiculeRequest();
-        req.setImmatriculation("AB-123-CD");
-        req.setCapacite(0);
-
-        assertThatThrownBy(() -> service.create(req))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("capacité");
+        assertThat(resp.getImmatriculation()).isEqualTo("AB-1-CD");
+        assertThat(resp.getChauffeurId()).isEqualTo(1L);
     }
 
     @Test
     void create_immatriculationDupliquee_throws() {
-        VehiculeRequest req = new VehiculeRequest();
-        req.setImmatriculation("AB-123-CD");
-        req.setCapacite(10);
-
         when(repository.existsByImmatriculation("AB-123-CD")).thenReturn(true);
 
-        assertThatThrownBy(() -> service.create(req))
-                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> service.create(request("AB-123-CD"), user(1L, Role.CHAUFFEUR)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("immatriculation");
     }
+
+    // ── getById ───────────────────────────────────────────────────────────────
 
     @Test
     void getById_introuvable_throws() {
@@ -87,85 +79,95 @@ class VehiculeServiceImplTest {
     }
 
     @Test
-    void update_success() {
-        Vehicule existing = new Vehicule("AB-123-CD", "Bus", 20);
+    void getById_success() {
+        User chauffeur = user(1L, Role.CHAUFFEUR);
+        when(repository.findById(1L)).thenReturn(Optional.of(vehicule(1L, chauffeur)));
+
+        VehiculeResponse resp = service.getById(1L);
+
+        assertThat(resp.getId()).isEqualTo(1L);
+    }
+
+    // ── getMesVehicules ───────────────────────────────────────────────────────
+
+    @Test
+    void getMesVehicules_retourneListe() {
+        User chauffeur = user(1L, Role.CHAUFFEUR);
+        when(repository.findByChauffeurId(1L))
+                .thenReturn(List.of(vehicule(1L, chauffeur), vehicule(2L, chauffeur)));
+
+        assertThat(service.getMesVehicules(chauffeur)).hasSize(2);
+    }
+
+    // ── update ────────────────────────────────────────────────────────────────
+
+    @Test
+    void update_parAdmin_success() {
+        User admin    = user(99L, Role.ADMIN);
+        User chauffeur = user(1L, Role.CHAUFFEUR);
+        Vehicule existing = vehicule(1L, chauffeur);
         when(repository.findById(1L)).thenReturn(Optional.of(existing));
-        when(repository.existsByImmatriculation("XY-999-ZZ")).thenReturn(false);
-        when(repository.save(any())).thenReturn(new Vehicule("XY-999-ZZ", "Van", 15));
+        when(repository.existsByImmatriculationAndIdNot("XY-999-ZZ", 1L)).thenReturn(false);
+        when(repository.save(any())).thenReturn(existing);
 
-        VehiculeRequest req = new VehiculeRequest();
-        req.setImmatriculation("XY-999-ZZ");
-        req.setModele("Van");
-        req.setCapacite(15);
+        VehiculeResponse resp = service.update(1L, request("XY-999-ZZ"), admin);
 
-        VehiculeResponse resp = service.update(1L, req);
-
-        assertThat(resp.getImmatriculation()).isEqualTo("XY-999-ZZ");
-        assertThat(resp.getCapacite()).isEqualTo(15);
+        assertThat(resp).isNotNull();
+        verify(repository).save(any());
     }
 
     @Test
-    void delete_introuvable_throws() {
-        when(repository.existsById(5L)).thenReturn(false);
+    void update_parProprietaire_success() {
+        User chauffeur = user(1L, Role.CHAUFFEUR);
+        Vehicule existing = vehicule(1L, chauffeur);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+        when(repository.existsByImmatriculationAndIdNot("XY-999-ZZ", 1L)).thenReturn(false);
+        when(repository.save(any())).thenReturn(existing);
 
-        assertThatThrownBy(() -> service.delete(5L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("5");
+        service.update(1L, request("XY-999-ZZ"), chauffeur);
+
+        verify(repository).save(any());
     }
 
     @Test
-    void delete_success() {
-        when(repository.existsById(1L)).thenReturn(true);
+    void update_nonProprietaire_throws() {
+        User chauffeur = user(1L, Role.CHAUFFEUR);
+        User autre     = user(2L, Role.CHAUFFEUR);
+        when(repository.findById(1L)).thenReturn(Optional.of(vehicule(1L, chauffeur)));
 
-        service.delete(1L);
+        assertThatThrownBy(() -> service.update(1L, request("XY"), autre))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("appartient");
+    }
+
+    // ── delete ────────────────────────────────────────────────────────────────
+
+    @Test
+    void delete_parProprietaire_success() {
+        User chauffeur = user(1L, Role.CHAUFFEUR);
+        when(repository.findById(1L)).thenReturn(Optional.of(vehicule(1L, chauffeur)));
+
+        service.delete(1L, chauffeur);
 
         verify(repository).deleteById(1L);
     }
 
     @Test
-    void getSiegesDisponibles_tousLibres() {
-        Vehicule v = new Vehicule("AB-123-CD", "Bus", 5);
-        OffsetDateTime date = OffsetDateTime.now().plusDays(1);
-        when(repository.findById(1L)).thenReturn(Optional.of(v));
-        when(reservationRepository.findSiegesReservesByVehiculeIdAndDateVoyage(1L, date))
-                .thenReturn(List.of());
+    void delete_nonProprietaire_throws() {
+        User chauffeur = user(1L, Role.CHAUFFEUR);
+        User autre     = user(2L, Role.CHAUFFEUR);
+        when(repository.findById(1L)).thenReturn(Optional.of(vehicule(1L, chauffeur)));
 
-        List<Integer> disponibles = service.getSiegesDisponibles(1L, date);
-
-        assertThat(disponibles).containsExactly(1, 2, 3, 4, 5);
+        assertThatThrownBy(() -> service.delete(1L, autre))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("appartient");
     }
 
     @Test
-    void getSiegesDisponibles_certainsPris() {
-        Vehicule v = new Vehicule("AB-123-CD", "Bus", 5);
-        OffsetDateTime date = OffsetDateTime.now().plusDays(1);
-        when(repository.findById(1L)).thenReturn(Optional.of(v));
-        when(reservationRepository.findSiegesReservesByVehiculeIdAndDateVoyage(1L, date))
-                .thenReturn(List.of(2, 4));
-
-        List<Integer> disponibles = service.getSiegesDisponibles(1L, date);
-
-        assertThat(disponibles).containsExactly(1, 3, 5);
-    }
-
-    @Test
-    void getSiegesDisponibles_tousOccupes() {
-        Vehicule v = new Vehicule("AB-123-CD", "Bus", 3);
-        OffsetDateTime date = OffsetDateTime.now().plusDays(1);
-        when(repository.findById(1L)).thenReturn(Optional.of(v));
-        when(reservationRepository.findSiegesReservesByVehiculeIdAndDateVoyage(1L, date))
-                .thenReturn(List.of(1, 2, 3));
-
-        List<Integer> disponibles = service.getSiegesDisponibles(1L, date);
-
-        assertThat(disponibles).isEmpty();
-    }
-
-    @Test
-    void getSiegesDisponibles_vehiculeIntrouvable_throws() {
+    void delete_introuvable_throws() {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.getSiegesDisponibles(99L, OffsetDateTime.now()))
+        assertThatThrownBy(() -> service.delete(99L, user(1L, Role.ADMIN)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("99");
     }
