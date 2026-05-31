@@ -30,6 +30,12 @@ public class AvisController {
         return ResponseEntity.ok(service.getByChauffeur(chauffeurId));
     }
 
+    /** Avis reçus par le chauffeur connecté */
+    @GetMapping("/mes-avis")
+    public ResponseEntity<List<AvisResponse>> getMesAvis(@AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.getMesAvis(currentUser));
+    }
+
     @GetMapping
     public ResponseEntity<List<AvisResponse>> getAll() {
         return ResponseEntity.ok(service.getAll());

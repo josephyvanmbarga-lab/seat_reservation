@@ -1,5 +1,6 @@
 package com.mbarga.seat_reservation.auth;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -15,6 +16,7 @@ public class RegisterRequest {
     @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
     private String password;
 
+    @Email(message = "Adresse email invalide")
     private String email;
 
     @Pattern(regexp = "^[+]?[0-9]{8,15}$", message = "Numéro de téléphone invalide")

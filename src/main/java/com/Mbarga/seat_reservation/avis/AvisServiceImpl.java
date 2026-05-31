@@ -68,6 +68,12 @@ public class AvisServiceImpl implements AvisService {
     }
 
     @Override
+    public List<AvisResponse> getMesAvis(User chauffeur) {
+        return avisRepository.findByChauffeurId(chauffeur.getId())
+                .stream().map(AvisResponse::from).toList();
+    }
+
+    @Override
     public List<AvisResponse> getAll() {
         return avisRepository.findAll().stream().map(AvisResponse::from).toList();
     }

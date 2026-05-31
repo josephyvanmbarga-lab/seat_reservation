@@ -47,6 +47,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,   "/api/vehicules").hasAnyRole("CHAUFFEUR", "ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/vehicules/**").hasAnyRole("CHAUFFEUR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/vehicules/**").hasAnyRole("CHAUFFEUR", "ADMIN")
+                        // administration des utilisateurs — ADMIN uniquement
+                        .requestMatchers(HttpMethod.GET,   "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/*/role").hasRole("ADMIN")
                         // tout utilisateur authentifié accède au reste
                         .anyRequest().authenticated()
                 )

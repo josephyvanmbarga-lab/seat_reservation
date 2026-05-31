@@ -32,6 +32,9 @@ public class AuthController {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalStateException("Ce nom d'utilisateur est déjà pris");
         }
+        if (request.getEmail() != null && userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalStateException("Cette adresse email est déjà utilisée");
+        }
         if (request.getRole() == Role.ADMIN) {
             throw new IllegalStateException("L'inscription en tant qu'ADMIN n'est pas autorisée");
         }
